@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from core.database import Base
 
 
-class LedgerEntry(Base):
+class LedgerEntryModel(Base):
     __tablename__ = "ledger_entries"
     id = Column(Integer, primary_key=True)
     operation = Column(String, nullable=False)
