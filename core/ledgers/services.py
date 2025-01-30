@@ -21,7 +21,7 @@ class LedgerService:
         nonce: str,
         owner_id: str,
         app_config: dict[str, int],
-    ):
+    ) -> int:
         # checks
         if operation not in app_config:
             raise ValueError("Invalid operation: " + operation)
@@ -42,12 +42,12 @@ class LedgerService:
         )
         db.add(new_entry)
         db.commit()
-        db.refresh(new_entry)
+        return int(new_entry.id)
 
     def _check_duplicate(self, db: Session, owner_id: str, nonce: str) -> bool:
         return (
             db.query(LedgerEntryModel.id)
-            .filter(
+            .where(
                 LedgerEntryModel.owner_id == owner_id, LedgerEntryModel.nonce == nonce
             )
             .first()
