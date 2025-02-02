@@ -3,23 +3,23 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.ledgers.services import LedgerService
-from core.ledgers.schemas import LedgerEntrySchema, LedgerOperationType
+from core.ledgers.schemas import LedgerEntrySchema, LedgerOperation
 
 
-def reach_endpoints(app_enum: type[LedgerOperationType], app_config: dict[str, int]) -> APIRouter:
+def reach_endpoints(app_enum: type[LedgerOperation], app_config: dict[str, int]) -> APIRouter:
 
     ep = APIRouter()
     ledger_logic = LedgerService()
 
     @ep.get("/ledger/{owner_id}")
     def get_owner_balance(
-        owner_id: str, db_session: Annotated[Session, Depends[get_db]]
+        owner_id: str, db_session: Annotated[Session, Depends(get_db)]
     ):
         return {"balance": ledger_logic.get_balance(db_session, owner_id)}
 
     @ep.post("/ledger")
     def post_new_ledger(
-        new_ledger: LedgerEntrySchema[LedgerOperationType], db_session: Annotated[Session, Depends[get_db]]
+        new_ledger: LedgerEntrySchema, db_session: Annotated[Session, Depends(get_db)]
     ):
         new_entry_id = ledger_logic.post_ledger(
             db_session,
