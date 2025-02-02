@@ -1,7 +1,6 @@
 from enum import Enum, EnumMeta
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Generic, TypeVar
 
 class RequiredOperationsMeta(EnumMeta):
     def __new__(cls, name, bases, app_operations):
@@ -10,10 +9,15 @@ class RequiredOperationsMeta(EnumMeta):
             if op not in app_operations:
                 raise TypeError(f"{name} must include {op}")
         return super().__new__(cls, name, bases, app_operations)
+    
+class LedgerOperation(str, Enum):
+    DAILY_REWARD = "DAILY_REWARD"
+    SIGNUP_CREDIT = "SIGNUP_CREDIT"
+    CREDIT_SPEND = "CREDIT_SPEND"
+    CREDIT_ADD = "CREDIT_ADD"
 
-LedgerOperationType = TypeVar("LedgerOperationType", bound=Enum)
-class LedgerEntrySchema(BaseModel, Generic[LedgerOperationType]):
-    operation: LedgerOperationType
+class LedgerEntrySchema(BaseModel):
+    operation: LedgerOperation
     amount: int
     nonce: str
     owner_id: str
