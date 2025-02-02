@@ -11,18 +11,14 @@ from pathlib import Path
 monorepo_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(monorepo_root))
 
-from core.database import Base, get_db
+from core.database import Base, get_db, _URL
 from core.ledgers.services import LedgerService
 from core.ledgers.schemas import LedgerOperation
 from apps.app1.app1_main import app
 from apps.app1.src.app1_config import APP1_LEDGER_CONFIG
 
-# Test database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = create_engine(_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Fixtures
@@ -67,10 +63,6 @@ TEST_OPERATIONS = [
 ]
 
 # Tests
-def test_get_balance_empty(client):
-    response = client.get(f"/ledger/{TEST_USER}")
-    assert response.status_code == 200
-    assert response.json() == {"balance": 0}
 
 def test_create_valid_entry(client, ledger_service):
     payload = {
@@ -86,6 +78,11 @@ def test_create_valid_entry(client, ledger_service):
     
     balance = ledger_service.get_balance(db_session, TEST_USER)
     assert balance == APP1_LEDGER_CONFIG["DAILY_REWARD"]
+
+def test_get_balance_empty(client):
+    response = client.get(f"/ledger/{TEST_USER}")
+    assert response.status_code == 200
+    assert response.json() == {"balance": 0}
 
 def test_duplicate_nonce_rejection(client):
     payload = {
