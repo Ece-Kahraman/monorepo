@@ -27,7 +27,8 @@ def upgrade() -> None:
     sa.Column('nonce', sa.String(), nullable=False),
     sa.Column('owner_id', sa.String(), nullable=False),
     sa.Column('created_on', sa.DateTime(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    if_not_exists=True
     )
     # ### end Alembic commands ###
 
