@@ -3,10 +3,10 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from core.database import get_db
 from core.ledgers.services import LedgerService
-from core.ledgers.schemas import LedgerEntrySchema
+from core.ledgers.schemas import LedgerEntrySchema, LedgerOperationType
 
 
-def reach_endpoints(app_config: dict[str, int]) -> APIRouter:
+def reach_endpoints(app_enum: type[LedgerOperationType], app_config: dict[str, int]) -> APIRouter:
 
     ep = APIRouter()
     ledger_logic = LedgerService()
@@ -19,7 +19,7 @@ def reach_endpoints(app_config: dict[str, int]) -> APIRouter:
 
     @ep.post("/ledger")
     def post_new_ledger(
-        new_ledger: LedgerEntrySchema, db_session: Annotated[Session, Depends[get_db]]
+        new_ledger: LedgerEntrySchema[LedgerOperationType], db_session: Annotated[Session, Depends[get_db]]
     ):
         new_entry_id = ledger_logic.post_ledger(
             db_session,
