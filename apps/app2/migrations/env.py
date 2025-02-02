@@ -51,6 +51,7 @@ def exclude_other_app_tables(context, revision, directives):
     # List all tables to exclude (other apps' version tables)
     excluded_tables = {"alembic_version_app1", "alembic_version_app2"} - {current_version_table}
 
+    # Filter out unwanted `DROP TABLE` operations
     for directive in directives:
         if isinstance(directive, ops.MigrationScript):
             if directive.upgrade_ops:
@@ -58,6 +59,7 @@ def exclude_other_app_tables(context, revision, directives):
                     op for op in directive.upgrade_ops.ops
                     if not (isinstance(op, ops.DropTableOp) and op.table_name in excluded_tables)
                 ]
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -100,7 +102,7 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection, 
             target_metadata=target_metadata, 
-            version_table="alembic_version_app1",
+            version_table="alembic_version_app2",
             process_revision_directives=exclude_other_app_tables
         )
 
