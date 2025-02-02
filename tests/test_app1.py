@@ -72,7 +72,8 @@ def test_create_valid_entry(client, ledger_service):
         "owner_id": TEST_USER
     }
     
-    response = client.post("/ledger", json=payload)
+    response = client.post("/app1/ledger", json=payload)
+    print(response.json())
     assert response.status_code == 200
     assert "id" in response.json()
     
@@ -80,7 +81,7 @@ def test_create_valid_entry(client, ledger_service):
     assert balance == APP1_LEDGER_CONFIG["DAILY_REWARD"]
 
 def test_get_balance_empty(client):
-    response = client.get(f"/ledger/{TEST_USER}")
+    response = client.get(f"/app1/ledger/{TEST_USER}")
     assert response.status_code == 200
     assert response.json() == {"balance": 0}
 
@@ -93,11 +94,11 @@ def test_duplicate_nonce_rejection(client):
     }
     
     # First request succeeds
-    response1 = client.post("/ledger", json=payload)
+    response1 = client.post("/app1/ledger", json=payload)
     assert response1.status_code == 200
     
     # Second request fails
-    response2 = client.post("/ledger", json=payload)
+    response2 = client.post("/app1/ledger", json=payload)
     assert response2.status_code == 400
     assert "Duplicate nonce" in response2.text
 
@@ -110,7 +111,7 @@ def test_insufficient_balance(client):
         "owner_id": TEST_USER
     }
     
-    response = client.post("/ledger", json=payload)
+    response = client.post("/app1/ledger", json=payload)
     assert response.status_code == 400
     assert "Insufficient balance" in response.text
 
@@ -122,7 +123,7 @@ def test_invalid_operation(client):
         "owner_id": TEST_USER
     }
     
-    response = client.post("/ledger", json=payload)
+    response = client.post("/app1/ledger", json=payload)
     assert response.status_code == 422  # Validation error
 
 def test_operation_amount_mismatch(client):
@@ -133,7 +134,7 @@ def test_operation_amount_mismatch(client):
         "owner_id": TEST_USER
     }
     
-    response = client.post("/ledger", json=payload)
+    response = client.post("/app1/ledger", json=payload)
     assert response.status_code == 400
     assert "Amount mismatch" in response.text
 
@@ -146,11 +147,11 @@ def test_balance_calculation(client, ledger_service):
             "nonce": f"{TEST_NONCE}_{i}",
             "owner_id": TEST_USER
         }
-        response = client.post("/ledger", json=payload)
+        response = client.post("/app1/ledger", json=payload)
         assert response.status_code == 200
     
     expected_balance = sum(amount for _, amount in TEST_OPERATIONS)
-    response = client.get(f"/ledger/{TEST_USER}")
+    response = client.get(f"/app1/ledger/{TEST_USER}")
     assert response.json()["balance"] == expected_balance
 
 def test_mixed_operations(client, ledger_service):
@@ -172,9 +173,9 @@ def test_mixed_operations(client, ledger_service):
             "nonce": f"{TEST_NONCE}_{i}",
             "owner_id": TEST_USER
         }
-        response = client.post("/ledger", json=payload)
+        response = client.post("/app1/ledger", json=payload)
         assert response.status_code == 200
     
     expected_balance = sum(amount for _, amount in credits + debits)
-    response = client.get(f"/ledger/{TEST_USER}")
+    response = client.get(f"/app1/ledger/{TEST_USER}")
     assert response.json()["balance"] == expected_balance
