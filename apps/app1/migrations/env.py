@@ -8,7 +8,14 @@ from alembic import context
 import os
 from dotenv import load_dotenv
 
+import sys
+from pathlib import Path
+
+monorepo_root = Path(__file__).resolve().parent.parent.parent.parent
+sys.path.append(str(monorepo_root))
+
 from core.database import Base
+from core.ledgers.models import LedgerEntryModel
 
 load_dotenv()
 
