@@ -9,7 +9,7 @@ class RequiredOperationsMeta(EnumMeta):
             if op not in app_operations:
                 raise TypeError(f"{name} must include {op}")
         return super().__new__(cls, name, bases, app_operations)
-
+    
 class LedgerOperation(str, Enum):
     DAILY_REWARD = "DAILY_REWARD"
     SIGNUP_CREDIT = "SIGNUP_CREDIT"
