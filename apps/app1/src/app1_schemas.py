@@ -6,5 +6,4 @@ class App1LedgerOperation(str, Enum, metaclass=RequiredOperationsMeta):
     SIGNUP_CREDIT = "SIGNUP_CREDIT"
     CREDIT_SPEND = "CREDIT_SPEND"
     CREDIT_ADD = "CREDIT_ADD"
-    
     CONTENT_CREATION = "CONTENT_CREATION"
