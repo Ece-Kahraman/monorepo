@@ -21,7 +21,7 @@ class LedgerService:
         nonce: str,
         owner_id: str,
         app_config: dict[str, int],
-    ) -> int:
+    ) -> LedgerEntryModel:
         # checks
         if operation not in app_config:
             raise ValueError("Invalid operation: " + operation)
@@ -34,15 +34,15 @@ class LedgerService:
 
         # create and post
         new_entry = LedgerEntryModel(
-            operation,
-            app_config[operation],
-            nonce,
-            owner_id,
-            datetime.now(timezone.utc),
+            operation=operation,
+            amount=app_config[operation],
+            nonce=nonce,
+            owner_id=owner_id,
+            created_on=datetime.now(timezone.utc)
         )
         db.add(new_entry)
         db.commit()
-        return int(new_entry.id)
+        return new_entry
 
     def _check_duplicate(self, db: Session, owner_id: str, nonce: str) -> bool:
         return (
