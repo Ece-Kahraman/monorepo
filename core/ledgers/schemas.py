@@ -4,6 +4,8 @@ from datetime import datetime
 
 
 """Metaclass to enforce required core operations in subclasses"""
+
+
 class RequiredOperationsMeta(EnumMeta):
     def __new__(cls, name, bases, app_operations):
         required = {"DAILY_REWARD", "SIGNUP_CREDIT", "CREDIT_SPEND", "CREDIT_ADD"}
@@ -14,6 +16,8 @@ class RequiredOperationsMeta(EnumMeta):
 
 
 """Base enumeration for shared ledger operations"""
+
+
 class LedgerOperation(str, Enum):
     DAILY_REWARD = "DAILY_REWARD"
     SIGNUP_CREDIT = "SIGNUP_CREDIT"
@@ -22,6 +26,8 @@ class LedgerOperation(str, Enum):
 
 
 """Base model for ledger entry validation"""
+
+
 class LedgerEntrySchema(BaseModel):
     operation: LedgerOperation
     amount: int

@@ -6,4 +6,3 @@ app = FastAPI()
 
 """App2 mounts onto the shared endpoint logics"""
 app.include_router(ledger_router, prefix="/app2")
-

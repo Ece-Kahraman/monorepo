@@ -14,25 +14,27 @@ Arg:
 Returns:
     APIRouter
 """
-def reach_endpoints( app_config: dict[str, int]) -> APIRouter:
+
+
+def reach_endpoints(app_config: dict[str, int]) -> APIRouter:
 
     ep = APIRouter()
     ledger_logic = LedgerService()
 
-
     """
     Get current balance for a user
     """
+
     @ep.get("/ledger/{owner_id}")
     def get_owner_balance(
         owner_id: str, db_session: Annotated[Session, Depends(get_db)]
     ):
         return {"balance": ledger_logic.get_balance(db_session, owner_id)}
 
-
     """
     Create a new ledger entry
     """
+
     @ep.post("/ledger")
     def post_new_ledger(
         new_ledger: LedgerEntrySchema, db_session: Annotated[Session, Depends(get_db)]

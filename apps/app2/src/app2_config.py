@@ -1,4 +1,5 @@
 """Operation/Amount Configuration for App2"""
+
 APP2_LEDGER_CONFIG = {
     "DAILY_REWARD": 1,
     "SIGNUP_CREDIT": 3,
