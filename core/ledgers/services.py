@@ -10,7 +10,7 @@ class LedgerService:
 
 
     """
-    Calculate current balance for a user
+    Calculates current balance for a user
     Args:
         db: Database session
         owner_id: User identifier
@@ -28,7 +28,7 @@ class LedgerService:
 
 
     """
-    Create a new ledger entry with validation
+    Creates a new ledger entry with validation
     Args:
         db: Database session
         entry_data: Entry data from API
@@ -72,7 +72,7 @@ class LedgerService:
     
 
     """
-    Check if the new transaction is unique
+    Checks if the new transaction is unique
     Args:
         db: Database session
         owner_id: User identifier to query
