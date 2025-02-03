@@ -44,20 +44,28 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+
 def exclude_other_app_tables(context, revision, directives):
     # Get the current app's version table name (e.g., "alembic_version_app1")
     current_version_table = context.config.get_main_option("version_table")
 
     # List all tables to exclude (other apps' version tables)
-    excluded_tables = {"alembic_version_app1", "alembic_version_app2"} - {current_version_table}
+    excluded_tables = {"alembic_version_app1", "alembic_version_app2"} - {
+        current_version_table
+    }
 
     for directive in directives:
         if isinstance(directive, ops.MigrationScript):
             if directive.upgrade_ops:
                 directive.upgrade_ops.ops = [
-                    op for op in directive.upgrade_ops.ops
-                    if not (isinstance(op, ops.DropTableOp) and op.table_name in excluded_tables)
+                    op
+                    for op in directive.upgrade_ops.ops
+                    if not (
+                        isinstance(op, ops.DropTableOp)
+                        and op.table_name in excluded_tables
+                    )
                 ]
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -98,10 +106,10 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
-            target_metadata=target_metadata, 
+            connection=connection,
+            target_metadata=target_metadata,
             version_table="alembic_version_app1",
-            process_revision_directives=exclude_other_app_tables
+            process_revision_directives=exclude_other_app_tables,
         )
 
         with context.begin_transaction():
