@@ -1,8 +1,8 @@
 """alter enum column
 
-Revision ID: bf9d3d0bb324
-Revises: 06cad193b607
-Create Date: 2025-02-02 18:34:34.175579
+Revision ID: 5226c36c35c9
+Revises: ba5ec5c9e004
+Create Date: 2025-02-03 00:37:58.412581
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'bf9d3d0bb324'
-down_revision: Union[str, None] = '06cad193b607'
+revision: str = '5226c36c35c9'
+down_revision: Union[str, None] = 'ba5ec5c9e004'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -40,9 +40,9 @@ def upgrade() -> None:
         'operation',
         type_=sa.Enum(
             'DAILY_REWARD', 'SIGNUP_CREDIT', 'CREDIT_SPEND', 'CREDIT_ADD',
-            name='ledger_operation'
+            name='ledgeroperation'
         ),
-        postgresql_using='operation::ledger_operation'
+        postgresql_using='operation::ledgeroperation'
     )
 
 

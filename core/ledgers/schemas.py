@@ -1,5 +1,5 @@
 from enum import Enum, EnumMeta
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 class RequiredOperationsMeta(EnumMeta):
@@ -21,4 +21,4 @@ class LedgerEntrySchema(BaseModel):
     amount: int
     nonce: str
     owner_id: str
-    created_on: datetime
+    created_on: datetime = Field(default_factory=datetime.utcnow)

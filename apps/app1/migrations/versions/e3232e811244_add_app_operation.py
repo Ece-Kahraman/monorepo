@@ -1,8 +1,8 @@
 """add app operation
 
-Revision ID: 60e213d02c2f
-Revises: bf9d3d0bb324
-Create Date: 2025-02-02 18:36:20.782752
+Revision ID: e3232e811244
+Revises: acebd6a4d6d4
+Create Date: 2025-02-03 00:33:51.303180
 
 """
 from typing import Sequence, Union
@@ -12,14 +12,14 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '60e213d02c2f'
-down_revision: Union[str, None] = 'bf9d3d0bb324'
+revision: str = 'e3232e811244'
+down_revision: Union[str, None] = 'acebd6a4d6d4'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("ALTER TYPE ledger_operation ADD VALUE 'CONTENT_CREATION'")
+    op.execute("ALTER TYPE ledgeroperation ADD VALUE 'CONTENT_CREATION'")
 
 
 def downgrade() -> None:

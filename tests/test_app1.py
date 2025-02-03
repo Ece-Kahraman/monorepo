@@ -3,7 +3,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from datetime import datetime, timezone
 
 import sys
 from pathlib import Path
@@ -11,18 +11,14 @@ from pathlib import Path
 monorepo_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(monorepo_root))
 
-from core.database import Base, get_db
+from core.database import Base, get_db, _URL
 from core.ledgers.services import LedgerService
 from core.ledgers.schemas import LedgerOperation
 from apps.app1.app1_main import app
 from apps.app1.src.app1_config import APP1_LEDGER_CONFIG
 
-# Test database setup
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = create_engine(_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Fixtures
@@ -67,25 +63,28 @@ TEST_OPERATIONS = [
 ]
 
 # Tests
-def test_get_balance_empty(client):
-    response = client.get(f"/ledger/{TEST_USER}")
-    assert response.status_code == 200
-    assert response.json() == {"balance": 0}
 
-def test_create_valid_entry(client, ledger_service):
+def test_create_valid_entry(client, ledger_service, db_session):
     payload = {
         "operation": LedgerOperation.DAILY_REWARD.value,
         "amount": APP1_LEDGER_CONFIG["DAILY_REWARD"],
         "nonce": TEST_NONCE,
-        "owner_id": TEST_USER
+        "owner_id": TEST_USER,
+        "created_on": datetime.now(timezone.utc).isoformat()
     }
     
-    response = client.post("/ledger", json=payload)
+    response = client.post("/app1/ledger", json=payload)
+    print(response.json())
     assert response.status_code == 200
     assert "id" in response.json()
     
     balance = ledger_service.get_balance(db_session, TEST_USER)
     assert balance == APP1_LEDGER_CONFIG["DAILY_REWARD"]
+
+def test_get_balance_empty(client):
+    response = client.get(f"/app1/ledger/{TEST_USER}")
+    assert response.status_code == 200
+    assert response.json() == {"balance": 0}
 
 def test_duplicate_nonce_rejection(client):
     payload = {
@@ -95,40 +94,40 @@ def test_duplicate_nonce_rejection(client):
         "owner_id": TEST_USER
     }
     
-    # First request succeeds
-    response1 = client.post("/ledger", json=payload)
+    response1 = client.post("/app1/ledger", json=payload)
     assert response1.status_code == 200
     
-    # Second request fails
-    response2 = client.post("/ledger", json=payload)
+    # this one intentionally fails
+    response2 = client.post("/app1/ledger", json=payload)
     assert response2.status_code == 400
-    assert "Duplicate nonce" in response2.text
+    assert "Duplicate transaction" in response2.text
 
 def test_insufficient_balance(client):
-    # Create initial debit that would put balance negative
+    # this test intentionally fails to test the entry balance conditions
+    # create initial debit that would put balance negative
     payload = {
         "operation": LedgerOperation.CREDIT_SPEND.value,
         "amount": APP1_LEDGER_CONFIG["CREDIT_SPEND"],
         "nonce": TEST_NONCE,
-        "owner_id": TEST_USER
+       "owner_id": TEST_USER
     }
     
-    response = client.post("/ledger", json=payload)
+    response = client.post("/app1/ledger", json=payload)
     assert response.status_code == 400
     assert "Insufficient balance" in response.text
 
 def test_invalid_operation(client):
     payload = {
-        "operation": "INVALID_OPERATION",
+        "operation": "CONTENT_ACCESS", # app2's own operation
         "amount": 10,
         "nonce": TEST_NONCE,
         "owner_id": TEST_USER
     }
     
-    response = client.post("/ledger", json=payload)
-    assert response.status_code == 422  # Validation error
+    response = client.post("/app1/ledger", json=payload)
+    assert response.status_code == 422  # passes the test because it is an invalid op
 
-def test_operation_amount_mismatch(client):
+def test_operation_amount_mismatch(client): # This test intentionally fails
     payload = {
         "operation": LedgerOperation.DAILY_REWARD.value,
         "amount": 100,  # Should be 1 according to config
@@ -136,7 +135,7 @@ def test_operation_amount_mismatch(client):
         "owner_id": TEST_USER
     }
     
-    response = client.post("/ledger", json=payload)
+    response = client.post("/app1/ledger", json=payload)
     assert response.status_code == 400
     assert "Amount mismatch" in response.text
 
@@ -149,11 +148,11 @@ def test_balance_calculation(client, ledger_service):
             "nonce": f"{TEST_NONCE}_{i}",
             "owner_id": TEST_USER
         }
-        response = client.post("/ledger", json=payload)
+        response = client.post("/app1/ledger", json=payload)
         assert response.status_code == 200
     
     expected_balance = sum(amount for _, amount in TEST_OPERATIONS)
-    response = client.get(f"/ledger/{TEST_USER}")
+    response = client.get(f"/app1/ledger/{TEST_USER}")
     assert response.json()["balance"] == expected_balance
 
 def test_mixed_operations(client, ledger_service):
@@ -175,9 +174,9 @@ def test_mixed_operations(client, ledger_service):
             "nonce": f"{TEST_NONCE}_{i}",
             "owner_id": TEST_USER
         }
-        response = client.post("/ledger", json=payload)
+        response = client.post("/app1/ledger", json=payload)
         assert response.status_code == 200
     
     expected_balance = sum(amount for _, amount in credits + debits)
-    response = client.get(f"/ledger/{TEST_USER}")
+    response = client.get(f"/app1/ledger/{TEST_USER}")
     assert response.json()["balance"] == expected_balance
