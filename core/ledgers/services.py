@@ -5,8 +5,18 @@ from core.ledgers.models import LedgerEntryModel
 from sqlalchemy.orm import Session
 
 
+"""Sets the core business logic shared between the apps"""
 class LedgerService:
 
+
+    """
+    Calculate current balance for a user
+    Args:
+        db: Database session
+        owner_id: User identifier
+    Returns:
+        Sum of all credit amounts for the user
+    """
     def get_balance(self, db: Session, owner_id: str) -> int:
         entries = (
             db.query(LedgerEntryModel)
@@ -16,6 +26,15 @@ class LedgerService:
         balance = sum(entry.amount for entry in entries)
         return int(balance)
 
+
+    """
+    Create a new ledger entry with validation
+    Args:
+        db: Database session
+        entry_data: Entry data from API
+    Returns:
+        Created ledger entry
+    """
     def post_ledger(
         self,        
         db: Session,
@@ -25,6 +44,7 @@ class LedgerService:
         owner_id: str,
         app_config: dict[str, int],
     ) -> LedgerEntryModel:
+        
         # checks
         if operation not in app_config:
             raise HTTPException(400, "Invalid operation")
@@ -49,7 +69,17 @@ class LedgerService:
         db.add(new_entry)
         db.commit()
         return new_entry
+    
 
+    """
+    Check if the new transaction is unique
+    Args:
+        db: Database session
+        owner_id: User identifier to query
+        nonce: Transaction ID
+    Returns:
+        True if (owner_id,nonce) exists
+    """
     def _check_duplicate(self, db: Session, owner_id: str, nonce: str) -> bool:
         return (
             db.query(LedgerEntryModel.id)
