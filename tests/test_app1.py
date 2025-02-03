@@ -81,3 +81,24 @@ def test_create_valid_entry(client, ledger_service, db_session):
     balance = ledger_service.get_balance(db_session, TEST_USER)
     assert balance == APP1_LEDGER_CONFIG["DAILY_REWARD"]
 
+def test_get_balance_empty(client):
+    response = client.get(f"/app1/ledger/{TEST_USER}")
+    assert response.status_code == 200
+    assert response.json() == {"balance": 0}
+
+def test_duplicate_nonce_rejection(client):
+    payload = {
+        "operation": LedgerOperation.SIGNUP_CREDIT.value,
+        "amount": APP1_LEDGER_CONFIG["SIGNUP_CREDIT"],
+        "nonce": TEST_NONCE,
+        "owner_id": TEST_USER
+    }
+    
+    # First request succeeds
+    response1 = client.post("/app1/ledger", json=payload)
+    assert response1.status_code == 200
+    
+    # Second request fails
+    response2 = client.post("/app1/ledger", json=payload)
+    assert response2.status_code == 400
+    assert "Duplicate nonce" in response2.text
