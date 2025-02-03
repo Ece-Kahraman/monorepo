@@ -1,4 +1,6 @@
 from datetime import datetime, timezone
+
+from fastapi import HTTPException
 from core.ledgers.models import LedgerEntryModel
 from sqlalchemy.orm import Session
 
@@ -15,22 +17,26 @@ class LedgerService:
         return int(balance)
 
     def post_ledger(
-        self,
+        self,        
         db: Session,
         operation: str,
+        amount: int,
         nonce: str,
         owner_id: str,
         app_config: dict[str, int],
     ) -> LedgerEntryModel:
         # checks
         if operation not in app_config:
-            raise ValueError("Invalid operation: " + operation)
+            raise HTTPException(400, "Invalid operation")
 
         if self._check_duplicate(db, owner_id, nonce):
-            raise ValueError("Duplicate transaction")
+            raise HTTPException(400, "Duplicate transaction")
 
         if app_config[operation] < 0 and self.get_balance(db, owner_id) < abs(app_config[operation]):
-            raise ValueError("Insufficient balance")
+            raise HTTPException(400, "Insufficient balance")
+        
+        if app_config[operation] != amount:
+            raise HTTPException(400, "Amount mismatch")
 
         # create and post
         new_entry = LedgerEntryModel(
